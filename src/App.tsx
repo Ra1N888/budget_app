@@ -1,26 +1,37 @@
-import React from 'react';
-import logo from './logo.svg';
+import Error from './pages/Error'
+import { Routes, Route } from "react-router-dom";
+import Sidebar from './components/Sidebar/Sidebar';
+import Topbar from './components/Topbar/Topbar';
+import { Layout } from 'antd';
 import './App.css';
+import Home from './pages/Home';
+import Analysis from './pages/Analysis';
+import Records from './pages/Records';
+import Setting from './pages/Setting';
 
-function App() {
+const { Content } = Layout;
+
+const App = () => {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="app">
+      <Layout style={{ minHeight: '100vh' }}>
+        <Sidebar />
+        <Layout className="site-layout">
+          <Topbar />
+          <Content >
+            <Routes>
+              <Route path='/' element={<Home />} />
+              <Route path='/analysis' element={<Analysis />} />
+              <Route path='/records' element={<Records />} />
+              <Route path='/setting' element={<Setting />} />
+              <Route path='*' element={<Error />} />
+            </Routes>
+          </Content>
+        </Layout>
+      </Layout>
     </div>
-  );
+
+  )
 }
 
-export default App;
+export default App

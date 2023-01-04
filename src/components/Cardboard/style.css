@@ -1,0 +1,17 @@
+.card_container{
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  padding: 0px;
+  margin: 0 10px 10px 10px;
+}
+
+.cardboard{
+  margin: 10px;
+  border-radius: 10px;
+  background-color: antiquewhite;
+}
+
+.sum_text{
+  padding: 10px;
+}

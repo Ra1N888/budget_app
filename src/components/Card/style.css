@@ -1,0 +1,219 @@
+.code-box-demo p {
+  margin: 0px;
+}
+.ant-card { 
+  /* display: inline; */
+  border-radius: 10%;
+  margin: 0px 10px 10px 10px; 
+}
+
+.ant-card-head-title{
+  text-align:center;
+}
+
+.circle{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  margin: auto;
+}
+
+.money_area{
+  display: flex;
+  justify-content: center;
+  margin: 25px 10px auto;
+}
+
+.ant-card-body{
+  height: 100%;
+}
+
+.blank_single_card{
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.ant-modal-body{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ant-modal-header{
+  text-align: center;
+  font-size: 1rem;
+}
+
+.ant-modal-header .ant-modal-title{
+  font-size: 1rem;
+  margin-bottom: 20px;
+}
+
+.ant-form-item .ant-form-item-label {
+  text-align: start;
+}
+
+.ant-radio-button-wrapper{
+  border: 1px solid #880f0f;
+  border-radius: 6px;
+  margin: 5px;
+  position: unset;
+  transition: none;
+}
+
+.ant-radio-button-wrapper:hover {
+  position: unset;
+}
+
+.ant-radio-button-wrapper:first-child {
+  border: 1px solid #880f0f;
+}
+
+#icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
+/* .ant-avatar .ant-avatar-lg .ant-avatar-circle .ant-avatar-icon .css-dev-only-do-not-override-1wizrxm{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+} */
+
+span.ant-avatar.ant-avatar-lg.ant-avatar-circle.ant-avatar-icon{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.icon_container{
+  display: flex;
+  flex-wrap: wrap;
+  /* justify-content: center; */
+  align-items: center;
+}
+
+.icon_item{
+  margin: 5px;
+}
+
+/* 隐藏掉了radio的圈选的小圆 */
+input[type="radio"] {
+	position: absolute;
+	opacity: 0;
+}
+
+input[class="radiobutton_1"]:focus + span {
+	background-color: #9C9EFE;
+
+}
+
+.circle-picker{
+  width: 100% !important;
+  justify-content: space-evenly;
+}
+
+.ant-form.ant-form-horizontal{
+  width: 70%;
+}
+
+.ant-card-extra{
+  border-radius: 5px;
+  position: absolute;
+}
+
+.icon_block{  
+  padding: 5px;
+}
+
+.ant-tag{
+  margin-top: 10px;
+}
+
+.ant-card-extra:hover {
+  background-color: #B9E0FF;
+}
+
+.ant-card-head-wrapper{
+  flex-direction: row-reverse;
+  position: relative;
+}
+
+ .ant-input-affix-wrapper{
+  font-size: x-large;
+}
+
+.ant-row.ant-form-item-row{
+  margin: 1rem 0 ;
+}
+
+#amount{
+  text-align: center;
+} 
+
+.ant-row.ant-form-item-row{
+  justify-content: center;
+} 
+
+
+input[class="radiobutton_2"]:checked + span {
+  background-color: #adafff;
+
+}
+
+/* input[class="radiobutton"]:hover + span {
+  color: aqua;
+} */
+
+.radio_span {
+  border-radius: 5px;
+  padding: 2px 8px 4px;
+  margin: 5px 5px 5px 0px;
+  background-color: #e0e0e7;
+
+  /*下面的语句是禁止选中文字*/
+  -webkit-user-select: none; /* Safari */
+  -ms-user-select: none; /* IE 10 and IE 11 */
+  user-select: none; /* Standard syntax */
+}
+
+.radio_span.add_button{
+  padding:2px 20px 4px
+}
+.radio_span.add_button:hover{
+  background-color: #adafff;
+}
+
+.ant-input-number-affix-wrapper{
+  width: auto;
+  display: flex;
+  font-size: xx-large;
+}
+
+.ant-input-number.ant-input-number-input{
+  height: unset;
+}
+
+.ant-input-number.ant-input-number-borderless.ant-input-number-in-form-item{
+  display: flex;
+}
+
+.ant-input-number-input-wrap{
+  display: flex;
+  align-items: center;
+}
+
+.ant-input-number.ant-input-number-borderless.ant-input-number-in-form-item{
+  font-size: xx-large;
+}
+
+.ant-col-18{
+max-width: unset;
+}
