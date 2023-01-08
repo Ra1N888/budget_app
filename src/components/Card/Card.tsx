@@ -18,6 +18,7 @@ import { DatePicker } from 'antd';
 import type { DatePickerProps } from 'antd/es/date-picker';
 import dayjs from 'dayjs';
 
+
 interface Props {
   _id: string;
   isPlus: boolean;
@@ -93,7 +94,7 @@ const Card = ({ _id, isPlus, name, color, icon, amount, children, total, setTota
 
   // console.log('card tags: ' + tags)
   // 发送-new record表单
-  const handleSubmit = (value: any) => {
+  const handleSubmit_add = (value: any) => {
     console.log('Success:', value);
     setOpen(false)
 
@@ -128,10 +129,22 @@ const Card = ({ _id, isPlus, name, color, icon, amount, children, total, setTota
       })
   }
 
+  const handleCancel = () => {
+    setOpen1(false);
+  }
+
+  const handleSave = () => {
+    form1.submit() //提交成功后处理handleSubmit_edit
+    setOpen1(false)
+    console.log('trigger Save')
+  }
+
   //发送-edit表单
   const handleSubmit_edit = (value: any) => {
 
-    setOpen1(false)
+    console.log('handleSubmit_edit')
+
+    // setOpen1(false)
 
     const obj = {
       id: _id,
@@ -149,16 +162,43 @@ const Card = ({ _id, isPlus, name, color, icon, amount, children, total, setTota
       .then((res) => {
         console.log('record_res: ' + res)
       })
-  }
+      .then(() => fetch('http://localhost:3001/api/home/' + ledger_id))
+      .then((res) => res.json())
+      .then((data) => {
 
-  const handleCancel = () => {
-    setOpen1(false);
-  }
+        console.log('ledger_cates_info_data: ' + data)
 
-  const handleSave = () => {
-    form1.submit() //提交成功后处理handleSubmit_edit
-    // setOpen1(false)
-    console.log('trigger Save')
+        let cates: cateProps[];
+        let new_total: number = 0;
+        let new_amount: number = 0;
+
+        //根据大类的支出收入决定获取的是支出的大类集合还是收入的大类集合
+        if (!isPlus) cates = data[0]
+        else cates = data[1]
+
+        //计算更新后的total
+        cates.forEach((cate) => {
+          new_total += cate.total
+        })
+
+        //计算更新后的该大类的amount
+        const found = cates.find(cate=> cate._id === _id)
+        if(found) new_amount = found.total
+
+        console.log('new_total&new_amount: '+ new_total + ' ' + new_amount)
+
+        //更新state
+        setTotal(new_total)
+
+        setName(obj.name)
+        setIcon(obj.icon)
+        setColor(obj.color)
+        setAmount(new_amount)
+
+      })
+      .catch((err) => console.log(err))
+
+
   }
 
   //获取子类信息
@@ -258,7 +298,7 @@ const Card = ({ _id, isPlus, name, color, icon, amount, children, total, setTota
             date: new Date(),
             remember: true
           }}
-          onFinish={handleSubmit} //onFinish 是 ‘successfully submit’ 后才会触发
+          onFinish={handleSubmit_add} //onFinish 是 ‘successfully submit’ 后才会触发
           autoComplete="off"
         >
           <Form.Item
@@ -313,6 +353,7 @@ const Card = ({ _id, isPlus, name, color, icon, amount, children, total, setTota
           wrapperCol={{ span: 16 }}
           initialValues={{ remember: true }}
           onFinish={handleSubmit_edit} //onFinish 是 ‘successfully submit’ 后才会触发
+          onFinishFailed={handleSubmit_edit}
           autoComplete="off"
         >
           <Form.Item
@@ -568,8 +609,6 @@ const Blankcard = ({ type, categories, setcategories }: Props_blank) => {
         }}
         width={400}
       >
-
-
         <Form
           form={form}
           labelCol={{ span: 8 }}
