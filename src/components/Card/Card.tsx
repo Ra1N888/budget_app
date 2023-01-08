@@ -142,6 +142,7 @@ const Card = ({ _id, isPlus, name, color, icon, amount, children, total, setTota
   //发送-edit表单
   const handleSubmit_edit = (value: any) => {
 
+    console.log(value)
     console.log('handleSubmit_edit')
 
     // setOpen1(false)
@@ -149,7 +150,7 @@ const Card = ({ _id, isPlus, name, color, icon, amount, children, total, setTota
     const obj = {
       id: _id,
       isPlus: isPlus,
-      name: value.name,
+      name: value.name, //为什么name是undefined？？？
       color: colorRef.current,
       icon: iconRef.current,
       children: tags,
@@ -189,7 +190,6 @@ const Card = ({ _id, isPlus, name, color, icon, amount, children, total, setTota
 
         //更新state
         setTotal(new_total)
-
         setName(obj.name)
         setIcon(obj.icon)
         setColor(obj.color)
@@ -360,6 +360,7 @@ const Card = ({ _id, isPlus, name, color, icon, amount, children, total, setTota
             label="name"
             name="name"
             rules={[{ required: true, message: 'Please input category name!' }]}
+            initialValue={cardname}
           >
             <Input defaultValue={cardname} />
           </Form.Item>
@@ -556,20 +557,21 @@ const Blankcard = ({ type, categories, setcategories }: Props_blank) => {
 
 
     //发起POST请求
-    // create_cate({ newCate: obj, ledger_id: ledger_id })
-    //   .then((old) => {
+    create_cate({ newCate: obj, ledger_id: ledger_id })
+      .then((old) => {
 
-    //     const new_: cateProps = {
-    //       _id: old.id,
-    //       name: old.name,
-    //       isPlus: old.isPlus,
-    //       color: old.color,
-    //       icon: old.icon,
-    //       total: 0,
-    //     }
+        const new_: cateProps = {
+          _id: old.id,
+          name: old.name,
+          isPlus: old.isPlus,
+          color: old.color,
+          icon: old.icon,
+          total: 0,
+          children: old.children
+        }
 
-    //     setcategories([...categories, new_])
-    //   })
+        setcategories([...categories, new_])
+      })
 
   }
 
