@@ -77,10 +77,12 @@ const Card = ({ _id, isPlus, name, color, icon, amount, children, total, setTota
   console.log('children: ' + children)
 
   //增删子类需要用到的state
-  const [tags, setTags] = useState<string[]>(children); //大类的children属性
-  const [inputVisible, setInputVisible] = useState<boolean>(false);
-  const [inputValue, setInputValue] = useState("");
-  const inputRef = useRef<InputRef>(null);
+  const [tags, setTags] = useState<string[]>(children); //大类的children属性（真子类-存入数据库的）
+  const [unsavedTags, setUnsavedTags] = useState<string[]>([]); //update界面准备新增的子类（假子类-未存入数据库的）
+
+  // const [inputVisible, setInputVisible] = useState<boolean>(false);
+  // const [inputValue, setInputValue] = useState("");
+  // const inputRef = useRef<InputRef>(null);
 
   const [form] = Form.useForm(); //antd第三方hook: 提交添加纪录的表单
   const [form1] = Form.useForm(); //antd第三方hook: 提交修改卡片信息的表单
@@ -183,10 +185,10 @@ const Card = ({ _id, isPlus, name, color, icon, amount, children, total, setTota
         })
 
         //计算更新后的该大类的amount
-        const found = cates.find(cate=> cate._id === _id)
-        if(found) new_amount = found.total
+        const found = cates.find(cate => cate._id === _id)
+        if (found) new_amount = found.total
 
-        console.log('new_total&new_amount: '+ new_total + ' ' + new_amount)
+        console.log('new_total&new_amount: ' + new_total + ' ' + new_amount)
 
         //更新state
         setTotal(new_total)
@@ -194,6 +196,7 @@ const Card = ({ _id, isPlus, name, color, icon, amount, children, total, setTota
         setIcon(obj.icon)
         setColor(obj.color)
         setAmount(new_amount)
+        setTags([...tags, ...unsavedTags]) //将原来的tags和unsavedTags合并，变成新的，即已存入数据库的tags
 
       })
       .catch((err) => console.log(err))
@@ -220,12 +223,12 @@ const Card = ({ _id, isPlus, name, color, icon, amount, children, total, setTota
     dataFetch();
   }, []);
 
-  useEffect(() => { //tag变成input后，保持input是focus的状态，就是光标闪烁的状态
-    console.log("again");
-    if (inputVisible) {
-      inputRef.current?.focus()
-    }
-  }, [inputVisible]);
+  // useEffect(() => { //tag变成input后，保持input是focus的状态，就是光标闪烁的状态
+  //   console.log("again");
+  //   if (inputVisible) {
+  //     inputRef.current?.focus()
+  //   }
+  // }, [inputVisible]);
 
   return (
     <>
@@ -245,6 +248,8 @@ const Card = ({ _id, isPlus, name, color, icon, amount, children, total, setTota
               iconRef.current = cardicon
               colorRef.current = cardcolor
               form1.resetFields();
+              setUnsavedTags([]); //清空子类区域的未存储tags
+
               setOpen1(true)
             }}
           >
@@ -380,7 +385,7 @@ const Card = ({ _id, isPlus, name, color, icon, amount, children, total, setTota
           <Form.Item
             label="subcates"
           >
-            <SubcateDisplay_cate id={_id} tags={tags} setTags={setTags} inputVisible={inputVisible} setInputVisible={setInputVisible} inputValue={inputValue} setInputValue={setInputValue} inputRef={inputRef} />
+            <SubcateDisplay_cate id={_id} tags={tags} setTags={setTags} unsavedTags={unsavedTags} setUnsavedTags={setUnsavedTags}/>
           </Form.Item>
 
 
@@ -524,9 +529,6 @@ const Blankcard = ({ type, categories, setcategories }: Props_blank) => {
 
   //增删子类需要用到的state
   const [tags, setTags] = useState<string[]>([]);
-  const [inputVisible, setInputVisible] = useState<boolean>(false);
-  const [inputValue, setInputValue] = useState("");
-  const inputRef = useRef<InputRef>(null);
 
   const [form] = Form.useForm(); //antd第三方hook
   const { getFieldValue, setFieldsValue } = form;
@@ -574,13 +576,6 @@ const Blankcard = ({ type, categories, setcategories }: Props_blank) => {
       })
 
   }
-
-  useEffect(() => { //tag变成input后，保持input是focus的状态，就是光标闪烁的状态
-    console.log("again");
-    if (inputVisible) {
-      inputRef.current?.focus()
-    }
-  }, [inputVisible]);
 
   return (
     <>
@@ -657,7 +652,7 @@ const Blankcard = ({ type, categories, setcategories }: Props_blank) => {
           <Form.Item
             label="subcates"
           >
-            <SubcateDisplay_blank id='blankcard_no_id' tags={tags} setTags={setTags} inputVisible={inputVisible} setInputVisible={setInputVisible} inputValue={inputValue} setInputValue={setInputValue} inputRef={inputRef} />
+            <SubcateDisplay_blank id='blankcard_no_id' tags={tags} setTags={setTags} />
           </Form.Item>
 
         </Form>
@@ -708,63 +703,95 @@ interface prop4 {
   id?: string;
   tags: string[];
   setTags: React.Dispatch<React.SetStateAction<string[]>>;
-  inputVisible: boolean;
-  setInputVisible: React.Dispatch<React.SetStateAction<boolean>>;
-  inputValue: string;
-  setInputValue: React.Dispatch<React.SetStateAction<string>>;
-  inputRef: React.RefObject<InputRef>;
+  unsavedTags: string[];
+  setUnsavedTags: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
-const SubcateDisplay_cate = ({ id, tags, setTags, inputVisible, setInputVisible, inputValue, setInputValue, inputRef }: prop4) => {
+interface prop5 {
+  id?: string;
+  tags: string[];
+  setTags: React.Dispatch<React.SetStateAction<string[]>>;
+}
+
+const SubcateDisplay_cate = ({ id, tags, setTags, unsavedTags, setUnsavedTags}: prop4) => {
 
   const [open, setOpen] = useState<boolean>(false)
   const removedTagRef = useRef<string>()
   const [check, setCheck] = useState<boolean>(false)
+  const [selfTags, setSelfTags] = useState<string[]>(tags) //组件内部再存一个tags的副本:selfTags，只有在save确定之后再去改动card组件的tags值
 
-  console.log('SubcateDisplay: ' + tags)
+  //默认的一些state（用于控制：点击new—tag后是否出现input框，以及input的输入内容）
+  const [inputVisible, setInputVisible] = useState<boolean>(false);
+  const [inputValue, setInputValue] = useState("");
+  const inputRef = useRef<InputRef>(null);
+
+  //设置一个临时的变量存储[真子类+假子类], 用来被遍历显示所有的tag
+  const allTags: string[] = [...tags, ...unsavedTags]
+
+  // console.log('SubcateDisplay: ' + tags)
   console.log('check: ' + check)
 
   const handleClose = (removedTag: string) => { //点击删除tag触发的事件
     removedTagRef.current = removedTag
     console.log('removed_tag: ' + removedTagRef.current)
 
-    setCheck(false)
-    setOpen(true)
+    //区分真子类（database中存在）假子类（frontend新增的，还未保存的）
+    if (tags.includes(removedTag)) { //删除真子类
+
+      setCheck(false)
+      setOpen(true)
+
+    } else { //删除假子类
+
+      const newUnsavedTags = unsavedTags.filter((tag) => tag !== removedTag);
+      console.log('newUnsavedTags: '+newUnsavedTags);
+      setUnsavedTags(newUnsavedTags);
+
+    }
     // console.log(newTags);
     // setTags(newTags);
   };
+
   const showInput = () => {
     setInputVisible(true);
   };
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
   };
-  const handleInputConfirm = () => {
-    if (inputValue && tags.indexOf(inputValue) === -1) {
-      setTags([...tags, inputValue]);
+  const handleInputConfirm = () => { //新增-假子类（输入新sub_tag后点击回车触发的事件）
+    if (inputValue && allTags.indexOf(inputValue) === -1) {
+      setUnsavedTags([...unsavedTags, inputValue]);
     }
     setInputVisible(false);
     setInputValue("");
   };
-  const forMap = (tag: string) => {
+  const forMap = (tag_item: string) => {
     const tagElem = (
       <Tag
         closable
         onClose={(e) => {
           e.preventDefault();
-          handleClose(tag);
+          handleClose(tag_item);
         }}
       >
-        {tag}
+        {tag_item}
       </Tag>
     );
     return (
-      <span key={tag} style={{ display: "inline-block" }}>
+      <span key={tag_item} style={{ display: "inline-block" }}>
         {tagElem}
       </span>
     );
   };
-  const tagChild = tags.map(forMap);
+  const tagChild = allTags.map(forMap);
+
+
+  useEffect(() => { //tag变成input后，保持input是focus的状态，就是光标闪烁的状态
+    console.log("again");
+    if (inputVisible) {
+      inputRef.current?.focus()
+    }
+  }, [inputVisible]);
 
   return (
     <>
@@ -825,7 +852,7 @@ const SubcateDisplay_cate = ({ id, tags, setTags, inputVisible, setInputVisible,
 
           //更新tags（删除指定tag后的tags）
           const newTags = tags.filter((tag) => tag !== removedTagRef.current);
-          console.log(newTags);
+          console.log('newTags: '+newTags);
           setTags(newTags);
 
           //如果勾选了“删除相关记录”，继续深度删除
@@ -847,7 +874,12 @@ const SubcateDisplay_cate = ({ id, tags, setTags, inputVisible, setInputVisible,
 
 
 
-const SubcateDisplay_blank = ({ tags, setTags, inputVisible, setInputVisible, inputValue, setInputValue, inputRef }: prop4) => {
+const SubcateDisplay_blank = ({ tags, setTags }: prop5) => {
+
+  //默认的一些state（用于控制：点击new—tag后是否出现input框，以及input的输入内容）
+  const [inputVisible, setInputVisible] = useState<boolean>(false);
+  const [inputValue, setInputValue] = useState("");
+  const inputRef = useRef<InputRef>(null);
 
   const handleClose = (removedTag: string) => { //点击删除tag触发的事件
     const newTags = tags.filter((tag) => tag !== removedTag);
@@ -886,6 +918,13 @@ const SubcateDisplay_blank = ({ tags, setTags, inputVisible, setInputVisible, in
     );
   };
   const tagChild = tags.map(forMap);
+
+  useEffect(() => { //tag变成input后，保持input是focus的状态，就是光标闪烁的状态
+    console.log("again");
+    if (inputVisible) {
+      inputRef.current?.focus()
+    }
+  }, [inputVisible]);
 
   return (
     <>
