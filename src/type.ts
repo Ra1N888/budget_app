@@ -8,4 +8,5 @@ export interface cateProps {
   icon: string;
   total: number;
   children: string[];
+  deleted: boolean,
 }

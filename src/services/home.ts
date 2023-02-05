@@ -15,6 +15,7 @@ interface cateProps{
   color: string;
   icon: string;
   subcates: string[];
+  deleted: boolean;
 }
 
 interface Props_1{
@@ -37,6 +38,7 @@ interface edited_cate {
   color: string;
   icon: string;
   children: string[];
+  deleted: boolean;
 }
 
 const create_cate = ({newCate,ledger_id}:Props_1) => {
@@ -54,11 +56,22 @@ const update_cate = (newCate:edited_cate) => {
   return request.then(response => response.data)
 }
 
-const delete_subcate = (cate_id:string, name: string) => {
-  const request = axios.delete(baseUrl+'/'+cate_id+'/'+name)
+const delete_subcate = (cate_id:string, name: string, tag: string) => {
+  const request = axios.delete(baseUrl+'/'+cate_id+'/'+name+'/'+tag)
   return request.then(response => response.data)
 }
 
-export { getAll, create_cate, create_record, update_cate, delete_subcate}
+const add_subcates = (parent_cate:edited_cate) => {
+  const request = axios.post(baseUrl+'/add_subcates', parent_cate)
+  return request.then(response => response.data)
+}
+
+const update_children = (cate_id:string, new_children:string[]) => {
+  const request = axios.put(baseUrl+'/'+cate_id+'/update_children', new_children)
+  return request.then(response => response.data)
+}
+
+
+export { getAll, create_cate, create_record, update_cate, delete_subcate, add_subcates, update_children}
 
 

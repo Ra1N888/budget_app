@@ -6,17 +6,14 @@ import { IoMdAdd } from 'react-icons/io';
 import { useState, useContext, useRef, useEffect } from "react";
 import { cateProps } from '../../type'
 import { LedgerContext } from '../../context';
-import type { RadioChangeEvent, InputRef } from 'antd';
-import type { FormInstance } from 'antd/es/form';
-import { UserOutlined } from '@ant-design/icons';
-import { create_cate, create_record, update_cate, delete_subcate } from '../../services/home'
-import { hover } from '@testing-library/user-event/dist/hover';
+import type { InputRef } from 'antd';
+import type { DatePickerProps } from 'antd/es/date-picker';
+import { create_cate, create_record, update_cate, delete_subcate, add_subcates, update_children} from '../../services/home'
 import { PlusOutlined } from '@ant-design/icons';
 import { TweenOneGroup } from 'rc-tween-one';
-import './style.css';
 import { DatePicker } from 'antd';
-import type { DatePickerProps } from 'antd/es/date-picker';
 import dayjs from 'dayjs';
+import './style.css';
 
 
 interface Props {
@@ -43,6 +40,7 @@ interface send_cateProps {
   color: string;
   icon: string;
   subcates: string[];
+  deleted: boolean;
 }
 
 interface send_record {
@@ -152,20 +150,35 @@ const Card = ({ _id, isPlus, name, color, icon, amount, children, total, setTota
     const obj = {
       id: _id,
       isPlus: isPlus,
-      name: value.name, //为什么name是undefined？？？
+      name: value.name,
       color: colorRef.current,
       icon: iconRef.current,
-      children: tags,
+      children: [...tags, ...unsavedTags],
+      deleted: false,
     }
 
     console.log('Success&Send:', obj);
 
-    //发起 PUT 更新请求
-    update_cate(obj)
+    const obj_sub = {
+      id: _id,
+      isPlus: isPlus,
+      name: value.name,
+      color: colorRef.current,
+      icon: iconRef.current,
+      children: unsavedTags,
+      deleted: false,
+    }
+
+    // step1: 发起 POST 添加新子类请求
+    add_subcates(obj_sub)
+      .then((res) => {
+        console.log('newadded_subcates: ' + res)
+        return update_cate(obj) //step2: 发起 PUT 更新大类请求
+      })
       .then((res) => {
         console.log('record_res: ' + res)
       })
-      .then(() => fetch('http://localhost:3001/api/home/' + ledger_id))
+      .then(() => fetch('http://localhost:3001/api/home/' + ledger_id)) //step3: 获取全部子类信息，更新页面数据
       .then((res) => res.json())
       .then((data) => {
 
@@ -196,7 +209,9 @@ const Card = ({ _id, isPlus, name, color, icon, amount, children, total, setTota
         setIcon(obj.icon)
         setColor(obj.color)
         setAmount(new_amount)
+
         setTags([...tags, ...unsavedTags]) //将原来的tags和unsavedTags合并，变成新的，即已存入数据库的tags
+        setUnsavedTags([]); //清空子类区域的未存储tags
 
       })
       .catch((err) => console.log(err))
@@ -211,24 +226,9 @@ const Card = ({ _id, isPlus, name, color, icon, amount, children, total, setTota
       // console.log(data)
       setSubcates(data)
 
-      // let default_tags: string[] = []
-      // data.forEach((element: receive_subcateProps) => {
-      //   default_tags.push(element.name)
-      // });
-      // setTags(default_tags)
-
-      // console.log(default_tags)
-      // console.log('card mount')
     };
     dataFetch();
   }, []);
-
-  // useEffect(() => { //tag变成input后，保持input是focus的状态，就是光标闪烁的状态
-  //   console.log("again");
-  //   if (inputVisible) {
-  //     inputRef.current?.focus()
-  //   }
-  // }, [inputVisible]);
 
   return (
     <>
@@ -244,11 +244,9 @@ const Card = ({ _id, isPlus, name, color, icon, amount, children, total, setTota
               e.preventDefault()
 
               //打开前设置默认的category默认的icon和color
-
               iconRef.current = cardicon
               colorRef.current = cardcolor
               form1.resetFields();
-              setUnsavedTags([]); //清空子类区域的未存储tags
 
               setOpen1(true)
             }}
@@ -279,7 +277,6 @@ const Card = ({ _id, isPlus, name, color, icon, amount, children, total, setTota
       <Modal
         title={cardname}
         centered
-
         open={open}
         onOk={() => {
           form.submit()
@@ -292,7 +289,6 @@ const Card = ({ _id, isPlus, name, color, icon, amount, children, total, setTota
         }}
         width={400}
       >
-
         <Form
           form={form}
           labelCol={{ span: 6 }}
@@ -312,7 +308,7 @@ const Card = ({ _id, isPlus, name, color, icon, amount, children, total, setTota
             <InputNumber prefix="￥" bordered={false} controls={false} />
           </Form.Item>
 
-          {<Subcates selected={selected} setSelected={setSelected} tags={tags} />}
+          <Subcates selected={selected} setSelected={setSelected} tags={tags} />
 
           <Form.Item
             label="note"
@@ -385,9 +381,10 @@ const Card = ({ _id, isPlus, name, color, icon, amount, children, total, setTota
           <Form.Item
             label="subcates"
           >
-            <SubcateDisplay_cate id={_id} tags={tags} setTags={setTags} unsavedTags={unsavedTags} setUnsavedTags={setUnsavedTags}/>
-          </Form.Item>
 
+            <SubcateDisplay_cate id={_id} tags={tags} setTags={setTags} unsavedTags={unsavedTags} setUnsavedTags={setUnsavedTags} />
+
+          </Form.Item>
 
         </Form>
       </Modal>
@@ -507,19 +504,6 @@ const Datepicker = ({ setFieldsValue }: prop3) => {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 //空白卡片 -【功能】添加新分类
 const Blankcard = ({ type, categories, setcategories }: Props_blank) => {
 
@@ -552,6 +536,7 @@ const Blankcard = ({ type, categories, setcategories }: Props_blank) => {
       color: colorRef.current,
       icon: iconRef.current,
       subcates: tags,
+      deleted: false,
     }
 
     // console.log('send: ' + obj.subcates)
@@ -569,7 +554,8 @@ const Blankcard = ({ type, categories, setcategories }: Props_blank) => {
           color: old.color,
           icon: old.icon,
           total: 0,
-          children: old.children
+          children: old.children,
+          deleted: false,
         }
 
         setcategories([...categories, new_])
@@ -713,7 +699,7 @@ interface prop5 {
   setTags: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
-const SubcateDisplay_cate = ({ id, tags, setTags, unsavedTags, setUnsavedTags}: prop4) => {
+const SubcateDisplay_cate = ({ id, tags, setTags, unsavedTags, setUnsavedTags }: prop4) => {
 
   const [open, setOpen] = useState<boolean>(false)
   const removedTagRef = useRef<string>()
@@ -744,7 +730,7 @@ const SubcateDisplay_cate = ({ id, tags, setTags, unsavedTags, setUnsavedTags}: 
     } else { //删除假子类
 
       const newUnsavedTags = unsavedTags.filter((tag) => tag !== removedTag);
-      console.log('newUnsavedTags: '+newUnsavedTags);
+      console.log('newUnsavedTags: ' + newUnsavedTags);
       setUnsavedTags(newUnsavedTags);
 
     }
@@ -852,13 +838,30 @@ const SubcateDisplay_cate = ({ id, tags, setTags, unsavedTags, setUnsavedTags}: 
 
           //更新tags（删除指定tag后的tags）
           const newTags = tags.filter((tag) => tag !== removedTagRef.current);
-          console.log('newTags: '+newTags);
+          console.log('newTags: ' + newTags);
           setTags(newTags);
 
           //如果勾选了“删除相关记录”，继续深度删除
           if (check && id && removedTagRef.current) { //删tag并且相关的记录 - 改 children & 删子类 & 删记录
-            delete_subcate(id, removedTagRef.current).then(() => console.log('successfully delete this subcate'))
+
+            delete_subcate(id, removedTagRef.current, 'true')
+            .then(() => {
+              console.log('successfully deeply delete this subcate')
+              return update_children(id, newTags)
+            })
+            .catch((err)=>console.log(err))
+
+          }else if((!check && id && removedTagRef.current)){
+
+            delete_subcate(id, removedTagRef.current, 'false')
+            .then(() => {
+              console.log('successfully shallow delete this subcate')
+              return update_children(id, newTags)
+            })
+            .catch((err)=>console.log(err))
+      
           }
+
         }}
         okText='delete'
       >
